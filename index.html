@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>りそな銀行</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="家計">
+
+  <meta name="theme-color" content="#0B0B0C">
+  <style>
+    :root {
+      --bg: #0B0B0C;
+      --panel: #1A1A1C;
+      --panel2: #141416;
+      --text: #F2F2F2;
+      --muted: #9AA0A6;
+      --line: rgba(255, 255, 255, .08);
+      --chip: #232326;
+      --accent: #19C37D;
+      /* green-ish */
+      --shadow: 0 16px 40px rgba(0, 0, 0, .35);
+      --r16: 16px;
+      --r20: 20px;
+      --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text)
+    }
+
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    .safeTop {
+      height: env(safe-area-inset-top)
+    }
+
+    .safeBottom {
+      height: env(safe-area-inset-bottom)
+    }
+
+    .top {
+      padding: 14px 16px 8px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .leftIcon,
+    .rightIcon {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .leftIcon svg,
+    .rightIcon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent)
+    }
+
+    .rightGroup {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    h1 {
+      margin: 10px 16px 10px;
+      font-size: 34px;
+      letter-spacing: .02em;
+    }
+
+    .content {
+      padding: 0 16px 96px
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03));
+      border: 1px solid var(--line);
+      border-radius: var(--r20);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .cardHd {
+      padding: 16px 16px 10px;
+      font-weight: 800;
+      font-size: 18px
+    }
+
+    .cardBd {
+      padding: 0 16px 14px
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .bigAmount {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: .02em;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .eyeBtn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(25, 195, 125, .10);
+      border: 1px solid rgba(25, 195, 125, .22);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .eyeBtn svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent)
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 12px 0
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .row:first-child {
+      border-top: none
+    }
+
+    .rowLeft {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0
+    }
+
+    .ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: rgba(25, 195, 125, .10);
+      border: 1px solid rgba(25, 195, 125, .18);
+      flex: 0 0 auto;
+    }
+
+    .ico svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent)
+    }
+
+    .rowTitle {
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rowAmt {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .sectionTitle {
+      margin: 18px 2px 10px;
+      font-size: 22px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .miniLink {
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0 10px
+    }
+
+    .chip {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .08);
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip.active {
+      background: rgba(255, 255, 255, .12);
+      border-color: rgba(255, 255, 255, .16);
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px
+    }
+
+    .tile {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 92px;
+    }
+
+    .tileTop {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start
+    }
+
+    .tileTitle {
+      font-size: 18px;
+      font-weight: 900;
+      margin-top: 6px
+    }
+
+    .tileSub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.35
+    }
+
+    .sumCard {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .sumLine {
+      display: flex;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .sumLabel {
+      font-size: 18px;
+      font-weight: 900
+    }
+
+    .sumVal {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--accent)
+    }
+
+    .sumVal.gray {
+      color: var(--text)
+    }
+
+    .txList {
+      margin-top: 10px
+    }
+
+    .txItem {
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .txItem:first-child {
+      border-top: none
+    }
+
+    .txLeft {
+      min-width: 0
+    }
+
+    .txTitle {
+      font-size: 18px;
+      font-weight: 900
+    }
+
+    .txSub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px
+    }
+
+    .txAmt {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .txAmt.plus {
+      color: var(--accent)
+    }
+
+    .txAmt.minus {
+      color: var(--text)
+    }
+
+    .tabbarWrap {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      padding-bottom: env(safe-area-inset-bottom);
+      background: linear-gradient(to top, rgba(11, 11, 12, 1), rgba(11, 11, 12, .85));
+      backdrop-filter: blur(10px);
+    }
+
+    .tabbar {
+      width: min(430px, 100%);
+      background: rgba(20, 20, 22, .92);
+      border-top: 1px solid rgba(255, 255, 255, .06);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 8px 8px;
+    }
+
+    .tab {
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      text-decoration: none;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .tab svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--muted)
+    }
+
+    .tab.active {
+      color: var(--accent)
+    }
+
+    .tab.active svg {
+      stroke: var(--accent)
+    }
+
+    .stamp {
+      margin: 10px 0 0;
+      color: rgba(255, 255, 255, .45);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .badgeDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ff4d4f;
+      display: inline-block;
+      margin-left: 4px;
+    }
+
+    .loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loadingCard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 22px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 255, 255, .12);
+      border-top-color: var(--accent);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loadingText {
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .appHidden {
+      visibility: hidden;
+    }
+    .app {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+.app.show {
+  opacity: 1;
+}
+  </style>
+</head>
+
+<body>
+  <div id="loadingOverlay" class="loadingOverlay" aria-label="読み込み中" role="status">
+    <div class="loadingCard">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loadingText">読み込み中…</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="safeTop"></div>
+
+    <div class="top">
+      <div class="leftIcon" title="プロフィール">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke-width="2" />
+          <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="rightGroup">
+        <div class="rightIcon" title="お知らせ">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M15 17H6a3 3 0 0 1-3-3v-2a7 7 0 0 1 14 0v2a3 3 0 0 1-3 3Z" stroke-width="2"
+              stroke-linecap="round" />
+            <path d="M9 17a3 3 0 0 0 6 0" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="rightIcon" title="メッセージ">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M21 12a8 8 0 1 1-4-6.93" stroke-width="2" stroke-linecap="round" />
+            <path d="M21 3v6h-6" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <h1 id="pageTitle">プロフィール</h1>
+
+    <div class="content" id="pageBody"></div>
+
+    <div class="tabbarWrap">
+      <nav class="tabbar" aria-label="ボトムナビゲーション">
+        <div class="tab" data-tab="home">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 20Z" stroke-width="2"
+              stroke-linejoin="round" />
+            <path d="M9 21v-7h6v7" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+          <div>ホーム</div>
+        </div>
+        <div class="tab" data-tab="wallet">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 7h16v12H4z" stroke-width="2" />
+            <path d="M16 12h4" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <div>ウォレット</div>
+        </div>
+        <div class="tab" data-tab="actions">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 17V7l10 5-10 5Z" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+          <div>アクション</div>
+        </div>
+        <div class="tab active" data-tab="profile">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke-width="2" />
+            <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <div>プロフィール</div>
+        </div>
+      </nav>
+    </div>
+    <div class="safeBottom"></div>
+  </div>
+
+  <script>
+    (() => {
+      const fmtY = (n) => Number(n).toLocaleString("ja-JP");
+      const nowStamp = () => {
+        const d = new Date();
+        const yy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mi = String(d.getMinutes()).padStart(2, "0");
+        return `${yy}.${mm}.${dd} ${hh}:${mi} 現在`;
+      };
+
+      const DATA = {
+        assets: { total: 6760000, cash: 260000, savings: 500000, invest: 1000000 },
+        debt: { total: 0 },
+        points: { total: 500 },
+        month: {
+          in: 1770455,
+          out: 2159605,
+          tx: [
+            { title: "利息", sub: "08-02-13マデ / 2026.02.14", amt: +455 },
+            { title: "入金", sub: "メモ / 2026.02.13", amt: +50000 },
+            { title: "支出", sub: "メモ / 2026.02.13", amt: -810000 },
+            { title: "入金", sub: "メモ / 2026.02.13", amt: +810000 },
+            { title: "振替", sub: "メモ / 2026.02.07", amt: -1244040 },
+          ]
+        }
+      };
+
+      let masked = true;
+      let tab = "profile";
+
+      const $ = (id) => document.getElementById(id);
+      const titleEl = $("pageTitle");
+      const bodyEl = $("pageBody");
+
+      function moneyText(n) {
+        return masked ? "ーーーーーー 円" : `${fmtY(n)} 円`;
+      }
+      function moneyTextSigned(n) {
+        if (masked) return (n >= 0 ? "ーーーーーー 円" : "ーーーーーー 円");
+        const sign = n >= 0 ? "" : "-";
+        return `${sign}${fmtY(Math.abs(n))} 円`;
+      }
+
+      function renderProfile() {
+        titleEl.textContent = "プロフィール";
+        bodyEl.innerHTML = `
+      <div class="card">
+        <div class="cardHd">普通貯金</div>
+        <div class="cardBd">
+          <div class="bigAmount">
+            <span>${moneyText(DATA.assets.total)}</span>
+            <div class="eyeBtn" id="toggleEye" title="表示切替" aria-label="表示切替">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke-width="2"/>
+                <path d="M12 15a3 3 0 1 0-3-3 3 3 0 0 0 3 3Z" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="subtle">${nowStamp()}</div>
+          <div class="divider"></div>
+
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M6 7h12M6 12h12M6 17h12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="rowTitle">振込　カ）グレートナビ</div>
+            </div>
+            <div class="rowAmt">${moneyText(DATA.assets.cash).replace("円", "-円").includes("-") ? moneyText(DATA.assets.cash) : moneyText(DATA.assets.cash)}</div>
+          </div>
+
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3v18" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M7 8h10M7 16h10" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="rowTitle">送金　IB　キヨウ</div>
+            </div>
+            <div class="rowAmt">${moneyText(DATA.assets.savings)}</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="sectionTitle">関連情報</div>
+      <div class="card">
+        <div class="cardHd">お借入れ</div>
+        <div class="cardBd">
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M7 7h10v10H7z" stroke-width="2"/>
+                  <path d="M5 12h2M17 12h2" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="rowTitle">合計</div>
+            </div>
+            <div class="rowAmt">${moneyText(DATA.debt.total)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sectionTitle">ポイント</div>
+      <div class="card">
+        <div class="cardHd">ポイントサービス</div>
+        <div class="cardBd">
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 21s8-4 8-10a5 5 0 0 0-9-3 5 5 0 0 0-9 3c0 6 10 10 10 10Z" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="rowTitle">保有ポイント</div>
+            </div>
+            <div class="rowAmt" style="color:var(--text)">${masked ? "ーーー Pt" : `${fmtY(DATA.points.total)} Pt`}</div>
+          </div>
+        </div>
+      </div>
+
+    `;
+
+        $("toggleEye").onclick = () => {
+          masked = !masked;
+          render();
+        };
+
+      }
+
+      function renderActions() {
+        titleEl.textContent = "アクション";
+        bodyEl.innerHTML = `
+      <div class="sectionTitle">
+        <span>もう一度使う</span>
+        <span class="miniLink">▴</span>
+      </div>
+      <div class="grid3">
+        <div class="tile">
+          <div class="tileTop">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l16-7-7 16-2-7-7-2Z" stroke-width="2" stroke-linejoin="round"/></svg></div>
+          </div>
+          <div class="tileTitle">送る</div>
+          <div class="tileSub">家族へ / メモ付き</div>
+        </div>
+        <div class="tile">
+          <div class="tileTop">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7h10v10H7z" stroke-width="2"/><path d="M9 9h6M9 12h6M9 15h6" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <div class="tileTitle">請求</div>
+          <div class="tileSub">メモ・写真で管理</div>
+        </div>
+        <div class="tile">
+          <div class="tileTop">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l16-7-7 16-2-7-7-2Z" stroke-width="2" stroke-linejoin="round"/></svg></div>
+          </div>
+          <div class="tileTitle">送る</div>
+          <div class="tileSub">友人へ / 分割</div>
+        </div>
+      </div>
+
+      <div class="sectionTitle">
+        <span>支払う</span>
+        <span class="miniLink">▴</span>
+      </div>
+      <div class="card">
+        <div class="cardBd">
+          ${actionRow("送金をする")}
+          ${actionRow("請求書を支払う")}
+          ${actionRow("定期支払いを登録する")}
+        </div>
+      </div>
+
+      <div class="sectionTitle">
+        <span>貯める</span>
+        <span class="miniLink">▴</span>
+      </div>
+      <div class="card">
+        <div class="cardBd">
+          ${actionRow("目標ごとに積み立てる")}
+          ${actionRow("支出をカテゴリで見直す")}
+        </div>
+      </div>
+
+    `;
+      }
+
+      function actionRow(text) {
+        return `
+      <div class="row">
+        <div class="rowLeft">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 17V7l10 5-10 5Z" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="rowTitle">${text}</div>
+        </div>
+        <div class="rowAmt" style="color:var(--muted)">›</div>
+      </div>
+    `;
+      }
+
+      function renderWallet() {
+        titleEl.textContent = "ウォレット";
+        bodyEl.innerHTML = `
+      <div class="card">
+        <div class="cardHd">残高</div>
+        <div class="cardBd">
+          <div class="bigAmount">
+            <span>${moneyText(DATA.assets.cash)}</span>
+            <div class="eyeBtn" id="toggleEye2" title="表示切替" aria-label="表示切替">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke-width="2"/>
+                <path d="M12 15a3 3 0 1 0-3-3 3 3 0 0 0 3 3Z" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="subtle">${nowStamp()}</div>
+
+          <div class="chips" id="chips">
+            ${chip("1月", true)}
+            ${chip("12月")}
+            ${chip("11月")}
+            ${chip("入金")}
+            ${chip("出金")}
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 12px">
+            <div class="miniLink">他の条件で検索する</div>
+          </div>
+
+          <div class="sectionTitle" style="margin:4px 0 10px">
+            <span>今月</span>
+            <span class="miniLink">レポートを見る</span>
+          </div>
+
+          <div class="sumCard">
+            <div>
+              <div class="sumLine"><span class="sumLabel">入金</span><span class="sumVal">${masked ? "ーーー 円" : fmtY(DATA.month.in) + " 円"}</span></div>
+              <div class="sumLine" style="margin-top:8px"><span class="sumLabel">出金</span><span class="sumVal gray">${masked ? "ーーー 円" : fmtY(DATA.month.out) + " 円"}</span></div>
+            </div>
+          </div>
+
+          <div class="txList">
+            ${DATA.month.tx.map(t => `
+              <div class="txItem">
+                <div class="txLeft">
+                  <div class="txTitle">${t.title}</div>
+                  <div class="txSub">${t.sub}</div>
+                </div>
+                <div class="txAmt ${t.amt >= 0 ? "plus" : "minus"}">${moneyTextSigned(t.amt)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+
+    `;
+        $("toggleEye2").onclick = () => { masked = !masked; render(); };
+
+        // chip selection UI only
+        document.querySelectorAll(".chip").forEach(c => {
+          c.onclick = () => {
+            document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+            c.classList.add("active");
+          };
+        });
+      }
+
+      function chip(label, active = false) {
+        return `<div class="chip ${active ? "active" : ""}">${label}</div>`;
+      }
+
+      function renderHome() {
+        titleEl.textContent = "ホーム";
+        bodyEl.innerHTML = `
+      <div class="card">
+        <div class="cardHd">今日のまとめ</div>
+        <div class="cardBd">
+          <div class="subtle">更新：${nowStamp()}</div>
+          <div class="divider"></div>
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18" stroke-width="2" stroke-linecap="round"/><path d="M7 8h10M7 16h10" stroke-width="2" stroke-linecap="round"/></svg></div>
+              <div class="rowTitle">今月の入金</div>
+            </div>
+            <div class="rowAmt" style="color:var(--accent)">${masked ? "ーーー 円" : fmtY(DATA.month.in) + " 円"}</div>
+          </div>
+          <div class="row">
+            <div class="rowLeft">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M7 17V7l10 5-10 5Z" stroke-width="2" stroke-linejoin="round"/></svg></div>
+              <div class="rowTitle">今月の出金</div>
+            </div>
+            <div class="rowAmt">${masked ? "ーーー 円" : fmtY(DATA.month.out) + " 円"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sectionTitle"><span>ショートカット</span><span class="miniLink">編集</span></div>
+      <div class="grid3">
+        <div class="tile"><div class="tileTitle">記録</div><div class="tileSub">支出をすぐ入力</div></div>
+        <div class="tile"><div class="tileTitle">目標</div><div class="tileSub">積立を確認</div></div>
+        <div class="tile"><div class="tileTitle">分析</div><div class="tileSub">カテゴリ別</div></div>
+      </div>
+
+    `;
+      }
+
+      function render() {
+        const tabs = document.querySelectorAll(".tab");
+        tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+        if (tab === "profile") renderProfile();
+        else if (tab === "actions") renderActions();
+        else if (tab === "wallet") renderWallet();
+        else renderHome();
+      }
+
+      document.querySelectorAll(".tab").forEach(t => {
+        t.onclick = () => { tab = t.dataset.tab; render(); };
+      });
+
+      const overlay = document.getElementById("loadingOverlay");
+      const appRoot = document.querySelector(".app");
+
+      if (appRoot) appRoot.classList.add("appHidden");
+
+      setTimeout(() => {
+        render();
+        if (overlay) overlay.style.display = "none";
+        if (appRoot) {
+          appRoot.classList.remove("appHidden");
+          appRoot.classList.add("show");
+        }
+      }, 3000);
+
+    })();
+  </script>
+</body>
+
+</html>
